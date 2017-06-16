@@ -9,6 +9,9 @@
 #include "Point.hpp"
 #include "Maintainance.hpp"
 #include <string>
+
+using namespace std;
+
 namespace Library
 {
 	namespace Function
@@ -17,26 +20,48 @@ namespace Library
 		class Function
 		{
 		public:
-			Function(Index N);
+			Function() { currentPoint = 0; nDataPoints = 0; }
 			virtual ~Function() { }
-			virtual Vector<T>& operator[](Point::Point<T>& other) = 0;
+
 			virtual void updateData() = 0;
-			virtual std::string getType() { return "Function.Virtual"; }
+			virtual string getType() { return "Function.Virtual"; }
+
+			vector<T>& operator[](Point::Point<T>& other);
+			T getFlux();
 		protected:
-			std::vector<T> currentData;
+			vector<T> currentData;
 			Point::Point<T>* currentPoint;
-			Index N;
-			bool pointInitialized;
+			ushort_t nDataPoints;
 		};
 
 		template <typename T>
-		Function<T>::Function(Index N)
+		vector<T>& Function<T>::operator[](Point::Point<T>& other)
 		{
-			this->N = N;
-			for(Index i = 0; i < N; i++)
-				currentData.push_back(0.);
-			currentPoint = 0;
-			pointInitialized = false;
+			if(other)
+			{
+				if(currentPoint != 0 && !currentPoint->equals(other))
+				{
+					currentPoint = other.clone();
+					updateData();
+				}
+				else if(currentPoint == 0)
+				{
+					currentPoint = other.clone();
+					updateData();
+				}
+			}
+			return currentData;
+		}
+
+		template <typename T>
+		T Function<T>::getFlux()
+		{
+			if(currentPoint != 0)
+				return 0;
+			T result = 0;
+			for(ushort_t index = 0; index < nDataPoints; index++)
+				result += currentData[index];
+			return result;
 		}
 	}
 }

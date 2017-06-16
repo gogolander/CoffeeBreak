@@ -11,6 +11,7 @@
 #include <cmath>
 #include "Maintainance.hpp"
 #include "Point.hpp"
+//#include "PointAGN.hpp"
 
 using namespace std;
 
@@ -28,10 +29,21 @@ namespace Library
 				this->nDimensions = 5;
 			}
 			PointMoffat(PointMoffat<T>& other);
+			PointMoffat(PointMoffat<T>* other);
 
 			virtual ~PointMoffat() { }
 			virtual bool isValid();
 			virtual void copyTo(Point<T>* target);
+			virtual PointMoffat<T>* clone() { return new PointMoffat<T>(this); }
+
+			PointMoffat<T> operator +(const T& b);
+			PointMoffat<T> operator +(PointMoffat<T>& b);
+			PointMoffat<T> operator -(const T& b);
+			PointMoffat<T> operator -(PointMoffat<T>& b);
+			PointMoffat<T> operator *(const T& b);
+			PointMoffat<T> operator *(PointMoffat<T>& b);
+			PointMoffat<T> operator /(const T& b);
+			PointMoffat<T> operator /(PointMoffat<T>& b);
 
 			ushort_t stringToIndex(string term);
 			string getType() { return "Point.Moffat"; }
@@ -75,6 +87,87 @@ namespace Library
 				target = new PointMoffat<T>();
 			for(ushort_t i = 0; i < this->nDimensions; i++)
 				target->get(i) = this->point[i];
+		}
+
+		template <typename T>
+		PointMoffat<T> PointMoffat<T>::operator +(const T& b)
+		{
+			PointMoffat<T> c;
+			for(ushort_t i; i < this->nDimensions; i++)
+				c[i] = this->get(i) + b;
+			return c;
+		}
+
+		template <typename T>
+		PointMoffat<T> PointMoffat<T>::operator +(PointMoffat<T>& b)
+		{
+			PointMoffat<T> c;
+			for(ushort_t i; i < this->nDimensions; i++)
+				c[i] = this->get(i) + b[i];
+			return c;
+		}
+
+		template <typename T>
+		PointMoffat<T> PointMoffat<T>::operator -(const T& b)
+		{
+			PointMoffat<T> c;
+			for(ushort_t i; i < this->nDimensions; i++)
+				c[i] = this->get(i) - b;
+			return c;
+		}
+
+		template <typename T>
+		PointMoffat<T> PointMoffat<T>::operator -(PointMoffat<T>& b)
+		{
+			PointMoffat<T> c;
+			for(ushort_t i; i < this->nDimensions; i++)
+				c[i] = this->get(i) - b[i];
+			return c;
+		}
+
+		template <typename T>
+		PointMoffat<T> PointMoffat<T>::operator *(const T& b)
+		{
+			PointMoffat<T> c;
+			for(ushort_t i; i < this->nDimensions; i++)
+				c[i] = this->get(i) * b;
+			return c;
+		}
+
+		template <typename T>
+		PointMoffat<T> PointMoffat<T>::operator *(PointMoffat<T>& b)
+		{
+			PointMoffat<T> c;
+			for(ushort_t i; i < this->nDimensions; i++)
+				c[i] = this->get(i) * b[i];
+			return c;
+		}
+
+		template <typename T>
+		PointMoffat<T> PointMoffat<T>::operator /(const T& b)
+		{
+			if(b != 0)
+			{
+				PointMoffat<T> c;
+				for(ushort_t i; i < this->nDimensions; i++)
+					c[i] = this->get(i) / b;
+				return c;
+			}
+			return 0;
+		}
+
+		template <typename T>
+		PointMoffat<T> PointMoffat<T>::operator /(PointMoffat<T>& b)
+		{
+			PointMoffat<T> c;
+			for(ushort_t i; i < this->nDimensions; i++)
+			{
+				if(b[i] != 0)
+					c[i] = this->get(i) / b[i];
+				else
+					c[i] = -1;
+			}
+			return c;
 		}
 	}
 }

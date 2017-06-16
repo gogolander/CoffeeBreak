@@ -6,11 +6,11 @@
  */
 
 #pragma once
-#include "Maintainance.hpp"
-#include "Point.hpp"
 #include <string>
 
 #include "Maintainance.hpp"
+#include "Point.hpp"
+
 namespace Library
 {
 	namespace Point
@@ -25,9 +25,21 @@ namespace Library
 				this->nDimensions = 8;
 			}
 			PointAGN(PointAGN<T>& other);
+			PointAGN(PointAGN<T>* other);
+
 			virtual ~PointAGN() { }
 			virtual bool isValid();
 			virtual void copyTo(Point<T>* target);
+			virtual PointAGN<T>* clone() { return new PointAGN<T>(this); }
+
+			PointAGN<T> operator +(const T& b);
+			PointAGN<T> operator +(PointAGN<T>& b);
+			PointAGN<T> operator -(const T& b);
+			PointAGN<T> operator -(PointAGN<T>& b);
+			PointAGN<T> operator *(const T& b);
+			PointAGN<T> operator *(PointAGN<T>& b);
+			PointAGN<T> operator /(const T& b);
+			PointAGN<T> operator /(PointAGN<T>& b);
 
 			ushort_t stringToIndex(string term);
 			string getType() { return "Point.AGN"; }
@@ -41,6 +53,13 @@ namespace Library
 		{
 			for(ushort_t index = 0; index < this->nDimensions; index++)
 				this->get(index) = other[index];
+		}
+
+		template <typename T>
+		PointAGN<T>::PointAGN(PointAGN<T>* other) : PointAGN<T>()
+		{
+			for(ushort_t index = 0; index < this->nDimensions; index++)
+				this->get(index) = other->get(index);
 		}
 
 		template <typename T>
@@ -75,6 +94,87 @@ namespace Library
 				target = new PointAGN<T>();
 			for(ushort_t i = 0; i < this->nDimensions; i++)
 				target->get(i) = this->point[i];
+		}
+
+		template <typename T>
+		PointAGN<T> PointAGN<T>::operator +(const T& b)
+		{
+			PointAGN<T> c;
+			for(ushort_t i; i < this->nDimensions; i++)
+				c[i] = this->get(i) + b;
+			return c;
+		}
+
+		template <typename T>
+		PointAGN<T> PointAGN<T>::operator +(PointAGN<T>& b)
+		{
+			PointAGN<T> c;
+			for(ushort_t i; i < this->nDimensions; i++)
+				c[i] = this->get(i) + b[i];
+			return c;
+		}
+
+		template <typename T>
+		PointAGN<T> PointAGN<T>::operator -(const T& b)
+		{
+			PointAGN<T> c;
+			for(ushort_t i; i < this->nDimensions; i++)
+				c[i] = this->get(i) - b;
+			return c;
+		}
+
+		template <typename T>
+		PointAGN<T> PointAGN<T>::operator -(PointAGN<T>& b)
+		{
+			PointAGN<T> c;
+			for(ushort_t i; i < this->nDimensions; i++)
+				c[i] = this->get(i) - b[i];
+			return c;
+		}
+
+		template <typename T>
+		PointAGN<T> PointAGN<T>::operator *(const T& b)
+		{
+			PointAGN<T> c;
+			for(ushort_t i; i < this->nDimensions; i++)
+				c[i] = this->get(i) * b;
+			return c;
+		}
+
+		template <typename T>
+		PointAGN<T> PointAGN<T>::operator *(PointAGN<T>& b)
+		{
+			PointAGN<T> c;
+			for(ushort_t i; i < this->nDimensions; i++)
+				c[i] = this->get(i) * b[i];
+			return c;
+		}
+
+		template <typename T>
+		PointAGN<T> PointAGN<T>::operator /(const T& b)
+		{
+			if(b != 0)
+			{
+				PointAGN<T> c;
+				for(ushort_t i; i < this->nDimensions; i++)
+					c[i] = this->get(i) / b;
+				return c;
+			}
+			return 0;
+		}
+
+		template <typename T>
+		PointAGN<T> PointAGN<T>::operator /(PointAGN<T>& b)
+		{
+			PointAGN<T> c;
+			for(ushort_t i; i < this->nDimensions; i++)
+			{
+				if(b[i] != 0)
+					c[i] = this->get(i) / b[i];
+				else
+					c[i] = -1;
+			}
+			return c;
 		}
 	}
 }

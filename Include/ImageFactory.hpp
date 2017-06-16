@@ -112,7 +112,7 @@ namespace Library
 			fits_report_error(stderr, status);
 		if(fits_close_file(fitsOut, &status))
 			fits_report_error(stderr, status);
-		delete fitsOut;
+//		delete fitsOut;
 	}
 
 	template <typename T>

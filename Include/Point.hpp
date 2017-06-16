@@ -23,20 +23,19 @@ namespace Library
 		{
 		public:
 			virtual ~Point() { }
+
 			virtual bool isValid() = 0;
 			virtual ushort_t stringToIndex(string term) = 0;
 			virtual void copyTo(Point<T>* target) = 0;
-			virtual string getType() { return "Point.Virtual"; }
-			virtual Point<T> clone() = 0;
+			virtual Point<T>* clone() = 0;
+
+			virtual string getType() { return string("Point.Virtual"); }
 
 			bool equals(Point<T>& other);
 			T& get(ushort_t index) { return point[index]; }
 			T& get(string term) { return point[stringToIndex(term)]; }
 			string toString();
 			ushort_t getDimensions() { return nDimensions; }
-
-			Point<T> operator +(const Point<T>& b);
-			virtual Point<T> operator +(const T& b) = 0;
 
 			bool operator ==(const Point<T>& other) { return this->equals(other); }
 			bool operator !=(const Point<T>& other) { return !this->equals(other); }
@@ -67,11 +66,9 @@ namespace Library
 		template <typename T>
 		bool Point<T>::equals(Point<T>& other)
 		{
-			if(!other)
+			if(!other || !this)
 				return false;
-			if(!this)
-				return false;
-			if(other.getType() != this->getType())
+			if(other.getDimensions() != this->nDimensions)
 				return false;
 			for(ushort_t param = 0; param < this->nDimensions; param++)
 				if(other[param] != this->point[param])
@@ -86,15 +83,6 @@ namespace Library
 			for(ushort_t index = 0; index < nDimensions; index++)
 				result += std::to_string(point[index]) + " ";
 			return result;
-		}
-
-		template <typename T>
-		Point<T> Point<T>::operator +(const Point<T>& b)
-		{
-			Point<T> c = b;
-			for(ushort_t index; index < c.getDimensions(); index++)
-				b[index] += get(index);
-			return c;
 		}
 	}
 }

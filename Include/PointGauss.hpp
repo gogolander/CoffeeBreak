@@ -12,6 +12,8 @@
 
 #include "Maintainance.hpp"
 #include "Point.hpp"
+#include "PointAGN.hpp"
+#include "PointMoffat.hpp"
 
 using namespace std;
 
@@ -34,9 +36,25 @@ namespace Library
 			virtual ~PointGauss() { }
 			virtual bool isValid();
 			virtual void copyTo(Point<T>* target);
-			virtual PointGauss<T> clone();
+			virtual PointGauss<T>* clone() { return new PointGauss<T>(this); }
 
-			virtual PointGauss<T> operator +(const T& b);
+			PointGauss<T> operator +(const T& b);
+			PointGauss<T> operator +(PointGauss<T>& b);
+			PointGauss<T> operator -(const T& b);
+			PointGauss<T> operator -(PointGauss<T>& b);
+			PointGauss<T> operator *(const T& b);
+			PointGauss<T> operator *(PointGauss<T>& b);
+			PointGauss<T> operator /(const T& b);
+			PointGauss<T> operator /(PointGauss<T>& b);
+
+//			PointGauss<T> operator +=(const T& b);
+//			PointGauss<T> operator +=(PointGauss<T>& b);
+//			PointGauss<T> operator -=(const T& b);
+//			PointGauss<T> operator -=(PointGauss<T>& b);
+//			PointGauss<T> operator *=(const T& b);
+//			PointGauss<T> operator *=(PointGauss<T>& b);
+//			PointGauss<T> operator /=(const T& b);
+//			PointGauss<T> operator /=(PointGauss<T>& b);
 
 			ushort_t stringToIndex(string term);
 			string getType() { return "Point.Gauss"; }
@@ -61,14 +79,14 @@ namespace Library
 		template <typename T>
 		bool PointGauss<T>::isValid() {	return true; }
 
-		template <typename T>
-		PointGauss<T> PointGauss<T>::clone()
-		{
-			PointGauss<T> result; // I smell trouble
-			for(ushort_t index = 0; index < this->nDimensions; index++)
-				result[index] = this->get(index);
-			return result;
-		}
+//		template <typename T>
+//		PointGauss<T> PointGauss<T>::clone()
+//		{
+//			PointGauss<T> result; // I smell trouble
+//			for(ushort_t i = 0; i < this->nDimensions; i++)
+//				result[i] = this->get(i);
+//			return result;
+//		}
 
 		template <typename T>
 		ushort_t PointGauss<T>::stringToIndex(string term)
@@ -76,10 +94,8 @@ namespace Library
 			transform(term.begin(), term.end(), term.begin(), ::tolower);
 			ushort_t value = (term == "amplitude" || term == "amp" || term == "a") * 1 +
 					(term == "center" || term == "c") * 2 +
-					(term == "s" || term == "sigma" || term == "dispersion" ||
-							term == "disp") * 3 +
-					(term == "zero" || term == "zerolevel" || term == "zero level" ||
-							term == "const") * 4;
+					(term == "s" || term == "sigma" || term == "dispersion" || term == "disp") * 3 +
+					(term == "zero" || term == "zerolevel" || term == "zero level" || term == "const") * 4;
 			return value - 1;
 		}
 
@@ -95,10 +111,103 @@ namespace Library
 		template <typename T>
 		PointGauss<T> PointGauss<T>::operator +(const T& b)
 		{
-			PointGauss<T> c = this->clone();
-			for(ushort_t index = 0; index < c.getDimensions(); index++)
-				c[index] += b;
+			PointGauss<T> c;
+			for(ushort_t i; i < this->nDimensions; i++)
+				c[i] = this->get(i) + b;
 			return c;
 		}
+
+		template <typename T>
+		PointGauss<T> PointGauss<T>::operator +(PointGauss<T>& b)
+		{
+			PointGauss<T> c;
+			for(ushort_t i; i < this->nDimensions; i++)
+				c[i] = this->get(i) + b[i];
+			return c;
+		}
+
+		template <typename T>
+		PointGauss<T> PointGauss<T>::operator -(const T& b)
+		{
+			PointGauss<T> c;
+			for(ushort_t i; i < this->nDimensions; i++)
+				c[i] = this->get(i) - b;
+			return c;
+		}
+
+		template <typename T>
+		PointGauss<T> PointGauss<T>::operator -(PointGauss<T>& b)
+		{
+			PointGauss<T> c;
+			for(ushort_t i; i < this->nDimensions; i++)
+				c[i] = this->get(i) - b[i];
+			return c;
+		}
+
+		template <typename T>
+		PointGauss<T> PointGauss<T>::operator *(const T& b)
+		{
+			PointGauss<T> c;
+			for(ushort_t i; i < this->nDimensions; i++)
+				c[i] = this->get(i) * b;
+			return c;
+		}
+
+		template <typename T>
+		PointGauss<T> PointGauss<T>::operator *(PointGauss<T>& b)
+		{
+			PointGauss<T> c;
+			for(ushort_t i; i < this->nDimensions; i++)
+				c[i] = this->get(i) * b[i];
+			return c;
+		}
+
+		template <typename T>
+		PointGauss<T> PointGauss<T>::operator /(const T& b)
+		{
+			PointGauss<T> c;
+			if(b != 0)
+			{
+				for(ushort_t i; i < this->nDimensions; i++)
+					c[i] = this->get(i) / b;
+			}
+			return c;
+		}
+
+		template <typename T>
+		PointGauss<T> PointGauss<T>::operator /(PointGauss<T>& b)
+		{
+			PointGauss<T> c;
+			for(ushort_t i; i < this->nDimensions; i++)
+			{
+				if(b[i] != 0)
+					c[i] = this->get(i) / b[i];
+				else
+					c[i] = -1;
+			}
+			return c;
+		}
+
+//		template <typename T>
+//		PointGauss<T> PointGauss<T>::operator =(PointAGN<T>& b)
+//		{
+//			PointGauss result;
+//			result["amp"] = b["bh amp"];
+//			result["center"] = b["bh center"];
+//			result["sigma"] = b["bh sigma"];
+//			result["zero"] = b["zero"];
+//			return result;
+//		}
+
+//		template <typename T>
+//		PointGauss<T> PointGauss<T>::operator =(PointMoffat<T>& b)
+//		{
+//			PointGauss result;
+//			result["amp"] = b["amp"];
+//			result["center"] = b["center"];
+//			result["sigma"] = b.getFWHM() / GAUSS_FWHM;
+//			result["zero"] = b["zero"];
+//			return result;
+//		}
 	}
 }
