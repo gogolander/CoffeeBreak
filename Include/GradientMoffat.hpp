@@ -8,6 +8,7 @@
 #pragma once
 #include "PointMoffat.hpp"
 #include "Gradient.hpp"
+#include "Maintainance.hpp"
 
 namespace Library
 {
@@ -17,19 +18,18 @@ namespace Library
 		class GradientMoffat : public Gradient<T>
 		{
 		public:
-			GradientMoffat(Index N);
+			GradientMoffat(ushort_t nDataPoints);
 			virtual ~GradientMoffat() { }
 			virtual void updateData();
 			virtual std::string getType() { return "Gradient.Moffat"; }
 		};
 
 		template <typename T>
-		GradientMoffat<T>::GradientMoffat(Index N) : Gradient<T>(N)
+		GradientMoffat<T>::GradientMoffat(ushort_t nDataPoints)
 		{
-			this->currentPoint = new Point::PointMoffat<T>();
-			this->currentData.reserve(N);
-			for(Index i = 0; i < N; i++)
-				this->currentData[i] = new Point::PointMoffat<T>();
+			this->nDataPoints = nDataPoints;
+			for(ushort_t x = 0; x < nDataPoints; x++)
+				this->currentGradient.push_back( new Point::PointMoffat<T>() );
 		}
 
 		template <typename T>
@@ -37,19 +37,19 @@ namespace Library
 		{
 			for(Index x = 0; x < this->N; x++)
 			{
-				T A = 1 + this->currentPoint->operator[]("b") * (x - this->currentPoint->operator[]("c")) *
-						(x - this->currentPoint->operator[]("c"));
-				T B = exp(-1 * this->currentPoint->operator[]("beta") * log(A));
+				T A = 1 + this->currentPoint->get("b") * (static_cast<T>(x) - this->currentPoint->get("c")) *
+						(static_cast<T>(x) - this->currentPoint->get("c"));
+				T B = exp(-1 * this->currentPoint->get("beta") * log(A));
 				T C = B / A;
-				this->currentData[x]->operator[]("amplitude") = B;
-				this->currentData[x]->operator[]("b") = this->currentPoint->operator[]("a") *
-					this->currentPoint->operator[]("beta") * (x - this->currentPoint->operator[]("c")) *
-					(x + this->currentPoint->operator[]("c")) * C;
-				this->currentData[x]->operator[]("center") = 2 * this->currentPoint->operator[]("a") *
-						this->currentPoint->operator[]("b") * this->currentPoint->operator[]("beta") *
-						(x - this->currentPoint->operator[]("c")) * C;
-				this->currentData[x]->operator[]("beta") = -1 * this->currentPoint->operator[]("a") * B * log(A);
-				this->currentData[x]->operator[]("const") = 1.;
+				this->currentData[x]->get("amplitude") = B;
+				this->currentData[x]->get("b") = this->currentPoint->get("a") *
+					this->currentPoint->get("beta") * (static_cast<T>(x) - this->currentPoint->get("c")) *
+					(static_cast<T>(x) + this->currentPoint->get("c")) * C;
+				this->currentData[x]->get("center") = 2 * this->currentPoint->get("a") *
+						this->currentPoint->get("b") * this->currentPoint->get("beta") *
+						(static_cast<T>(x) - this->currentPoint->get("c")) * C;
+				this->currentData[x]->get("beta") = -1 * this->currentPoint->get("a") * B * log(A);
+				this->currentData[x]->get("const") = 1.;
 			}
 		}
 	}

@@ -7,9 +7,16 @@
 
 #pragma once
 #include "Fit.h"
+#include "Fit.cpp"
 #include "PointGauss.hpp"
 #include "FunctionGauss.hpp"
 #include "GradientGauss.hpp"
+#include "Maintainance.hpp"
+#include "Data.hpp"
+
+#include <iostream>
+#include <boost/multi_array.hpp>
+#include <vector>
 
 namespace Library
 {
@@ -19,16 +26,34 @@ namespace Library
 		class FitGauss : public Fit<T>
 		{
 		public:
-			typedef typename boost::shared_ptr<T**> Matrix;
-			FitGauss(Vector<T>& data, int nDataPoints);
+			FitGauss(vector<T>& data, ushort_t nDataPoints);
 			void HongweiGuo(Point::PointGauss<T>& Point, int iterations);
+			virtual ~FitGauss() { }
+		protected:
+			virtual Function::Function<T>& function() { return myFunction; }
+			virtual Function::Gradient<T>& gradient() {return myGradient; }
+			virtual Point::Point<T>& newPoint() { return myNewPoint; }
+			virtual Point::Point<T>& deltaPoint() { return myDeltaPoint; }
+			virtual Point::Point<T>& h_sd() { return my_h_sd; }
+			virtual Point::Point<T>& h_gn() { return my_h_gn; }
+			virtual Point::Point<T>& h_dl() { return my_h_dl; }
+
+			Function::FunctionGauss<T> myFunction;
+			Function::GradientGauss<T> myGradient;
+			Point::PointGauss<T> myNewPoint;
+			Point::PointGauss<T> myDeltaPoint;
+			Point::PointGauss<T> my_h_sd;
+			Point::PointGauss<T> my_h_gn;
+			Point::PointGauss<T> my_h_dl;
 		};
 
 		template<typename T>
-		FitGauss<T>::FitGauss(Vector<T>& data, int nDataPoints) : Fit<T>(data, nDataPoints)
+		FitGauss<T>::FitGauss(vector<T>& data, ushort_t nDataPoints) : myFunction(nDataPoints),
+			myGradient(nDataPoints)
 		{
-			this->function = new Function::FunctionGauss<T>(nDataPoints);
-			this->gradient = new Function::GradientGauss<T>(nDataPoints);
+			this->data = Data::Data<T>(data, nDataPoints);
+			this->nDataPoints = nDataPoints;
+			this->data.initData();
 		}
 
 		template <typename T>

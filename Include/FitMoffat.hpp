@@ -11,23 +11,51 @@
 #include "FunctionMoffat.hpp"
 #include "GradientMoffat.hpp"
 
-namespace Library
-{
-	namespace Fit
-	{
-		template <typename T>
-		class FitMoffat : public Fit<T>
-		{
-		public:
-			typedef typename boost::shared_ptr<T**> Matrix;
-			FitMoffat(Vector<T>& data, int nDataPoints);
-		};
+namespace Library {
+    namespace Fit {
+        template<typename T>
+        class FitMoffat: public Fit<T> {
+            public:
+                FitMoffat(vector<T>& data, ushort_t nDataPoints);
+                virtual ~FitMoffat() { }
+            protected:
+                virtual Function::Function<T>& function() {
+                    return myFunction;
+                }
+                virtual Function::Gradient<T>& gradient() {
+                    return myGradient;
+                }
+                virtual Point::Point<T>& newPoint() {
+                    return myNewPoint;
+                }
+                virtual Point::Point<T>& deltaPoint() {
+                    return myDeltaPoint;
+                }
+                virtual Point::Point<T>& h_sd() {
+                    return my_h_sd;
+                }
+                virtual Point::Point<T>& h_gn() {
+                    return my_h_gn;
+                }
+                virtual Point::Point<T>& h_dl() {
+                    return my_h_dl;
+                }
 
-		template <typename T>
-		FitMoffat<T>::FitMoffat(Vector<T>& data, int nDataPoints) : Fit<T>(data, nDataPoints)
-		{
-			this->function = new Function::FunctionMoffat<T>(nDataPoints);
-			this->gradient = new Function::GradientMoffat<T>(nDataPoints);
-		}
-	}
+                Function::FunctionMoffat<T> myFunction;
+                Function::GradientMoffat<T> myGradient;
+                Point::PointMoffat<T> myNewPoint;
+                Point::PointMoffat<T> myDeltaPoint;
+                Point::PointMoffat<T> my_h_sd;
+                Point::PointMoffat<T> my_h_gn;
+                Point::PointMoffat<T> my_h_dl;
+        };
+
+        template<typename T>
+        FitMoffat<T>::FitMoffat(vector<T>& data, ushort_t nDataPoints) :
+                myFunction(nDataPoints), myGradient(nDataPoints) {
+            this->data = Data::Data<T>(data, nDataPoints);
+            this->nDataPoints = nDataPoints;
+            this->data.initData();
+        }
+    }
 }

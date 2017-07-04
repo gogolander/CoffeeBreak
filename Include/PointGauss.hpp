@@ -36,7 +36,9 @@ namespace Library
 			virtual ~PointGauss() { }
 			virtual bool isValid();
 			virtual void copyTo(Point<T>* target);
-			virtual PointGauss<T>* clone() { return new PointGauss<T>(this); }
+			virtual Point<T>* clone() { return new PointGauss<T>(this); }
+			virtual Point<T>* newInstance() { return new PointGauss<T>(); }
+			virtual void fromVector(vector<T> data);
 
 			PointGauss<T> operator +(const T& b);
 			PointGauss<T> operator +(PointGauss<T>& b);
@@ -46,6 +48,8 @@ namespace Library
 			PointGauss<T> operator *(PointGauss<T>& b);
 			PointGauss<T> operator /(const T& b);
 			PointGauss<T> operator /(PointGauss<T>& b);
+
+			PointGauss<T> operator =(vector<T> b);
 
 //			PointGauss<T> operator +=(const T& b);
 //			PointGauss<T> operator +=(PointGauss<T>& b);
@@ -188,16 +192,25 @@ namespace Library
 			return c;
 		}
 
-//		template <typename T>
-//		PointGauss<T> PointGauss<T>::operator =(PointAGN<T>& b)
-//		{
-//			PointGauss result;
-//			result["amp"] = b["bh amp"];
-//			result["center"] = b["bh center"];
-//			result["sigma"] = b["bh sigma"];
-//			result["zero"] = b["zero"];
-//			return result;
-//		}
+		template <typename T>
+		PointGauss<T> PointGauss<T>::operator =(vector<T> b)
+		{
+			PointGauss result;
+			result["amp"] = b[stringToIndex("amp")];
+			result["center"] = b[stringToIndex("center")];
+			result["sigma"] = b[stringToIndex("sigma")];
+			result["zero"] = b[stringToIndex("zero")];
+			return result;
+		}
+
+		template <typename T>
+		void PointGauss<T>::fromVector(vector<T> b)
+		{
+			(*this)["amp"] = b[stringToIndex("amp")];
+			(*this)["center"] = b[stringToIndex("center")];
+			(*this)["sigma"] = b[stringToIndex("sigma")];
+			(*this)["zero"] = b[stringToIndex("zero")];
+		}
 
 //		template <typename T>
 //		PointGauss<T> PointGauss<T>::operator =(PointMoffat<T>& b)

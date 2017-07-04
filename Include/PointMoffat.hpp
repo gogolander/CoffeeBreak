@@ -34,7 +34,8 @@ namespace Library
 			virtual ~PointMoffat() { }
 			virtual bool isValid();
 			virtual void copyTo(Point<T>* target);
-			virtual PointMoffat<T>* clone() { return new PointMoffat<T>(this); }
+			virtual Point<T>* clone() { return new PointMoffat<T>(this); }
+			virtual Point<T>* newInstance() { return new PointMoffat<T>(); }
 
 			PointMoffat<T> operator +(const T& b);
 			PointMoffat<T> operator +(PointMoffat<T>& b);

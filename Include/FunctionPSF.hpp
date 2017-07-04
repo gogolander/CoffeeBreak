@@ -10,6 +10,7 @@
 #include "Function.hpp"
 #include "Fourier.hpp"
 #include "Maintainance.hpp"
+#include <cmath>
 
 namespace Library
 {
@@ -19,8 +20,7 @@ namespace Library
 		class FunctionPSF : public Function<T>
 		{
 		public:
-			FunctionPSF(T pixelWidth, Index N);
-			Vector<T>& operator[](Point::Point<T>& other);
+			FunctionPSF(T pixelWidth, ushort_t nDataPoints);
 			void updateData();
 			std::string getType() { return "Function.PSF"; }
 		private:
@@ -29,47 +29,37 @@ namespace Library
 		};
 
 		template <typename T>
-		FunctionPSF<T>::FunctionPSF(T pixelWidth, Index N) : Function<T>(N)
+		FunctionPSF<T>::FunctionPSF(T pixelWidth, ushort_t nDataPoints)
 		{
 			this->currentPoint = new Point::PointPSF<T>();
+			this->currentData = vector<T>(nDataPoints);
 			this->pixelWidth = pixelWidth;
-			this->currentPoint["sigma"] = pixelWidth / GAUSS_FWHM;
-			boost::shared_ptr<T[]> R(new T[N]);
+			this->currentPoint->get("sigma") = pixelWidth / GAUSS_FWHM;
+			vector<T> R(nDataPoints);
 			T flux = 0.;
-			for(Index x = 0; x < N; x++)
+			for(ushort_t x = 0; x < nDataPoints; x++)
 			{
-				int x2 = std::min(x * x, (N - x) * (N - x)); // conservazione delle posizioni
-				R[x] = exp(-0.5 * x2 / (this->currentPoint["sigma"] * this->currentPoint["sigma"]));
+				int x2 = std::min(x * x, (nDataPoints - x) * (nDataPoints - x)); // conservazione delle posizioni
+				R[x] = exp(-0.5 * x2 / (this->currentPoint->get("sigma") * this->currentPoint->get("sigma")));
 				flux += R[x];
 			}
-			for(Index x = 0; x < N; x++)
+			for(ushort_t x = 0; x < nDataPoints; x++)
 				R[x] /= flux; // conservazione del flusso
-			this->fftR(R, N);
-		}
-
-		template <typename T>
-		Vector<T>& FunctionPSF<T>::operator[](Point::Point<T>& other)
-		{
-			if(!other.equals(this->currentPoint))
-			{
-				other.copyTo(this->currentPoint);
-				updateData();
-			}
-			return this->currentData;
+			this->fftR(R, nDataPoints);
 		}
 
 		template <typename T>
 		void FunctionPSF<T>::updateData()
 		{
-			for(Index x = 0; x < this->N; x++)
+			for(ushort_t x = 0; x < this->nDataPoints; x++)
 			{
-				T amplitude = this->currentPoint["amplitude"];
-				T xc2 = x - this->currentPoint["center"];
+				T amplitude = this->currentPoint->get("amplitude");
+				T xc2 = static_cast<T>(x) - this->currentPoint->get("center");
 				xc2 *= xc2;
-				this->currentData[x] = amplitude * pow(1 + this->currentPoint["b"] * xc2,
-						-1 * this->currentPoint["beta"]) + this->currentPoint["const"];
+				this->currentData[x] = amplitude * pow(1 + this->currentPoint->get("b") * xc2,
+						-1 * this->currentPoint->get("beta")) + this->currentPoint->get("const");
 			}
-			this->fftR.ConvolveWith(this->currentData, this->N, this->currentData, NULL);
+			this->fftR.ConvolveWith(this->currentData, this->nDataPoints, this->currentData, NULL);
 		}
 	}
 }

@@ -10,6 +10,9 @@
 #include "Gradient.hpp"
 #include "Fourier.hpp"
 #include <cmath>
+#include <string>
+
+using namespace std;
 
 namespace Library
 {
@@ -19,82 +22,84 @@ namespace Library
 		class GradientAGN : public Gradient<T>
 		{
 		public:
-			GradientAGN(Point::PointMoffat<T>& pointS, Index N);
+			GradientAGN(Point::PointMoffat<T>& pointS, ushort_t nDataPoints);
 			virtual ~GradientAGN() {}
 			virtual void updateData();
-			virtual std::string getType() { return "Gradient.AGN"; }
+			virtual string getType() { return string("Gradient.AGN"); }
 		protected:
 			FourierAnalysis::Fourier<T> fftS;
 		};
 
 		template <typename T>
-		GradientAGN<T>::GradientAGN(Point::PointMoffat<T>& pointS, Index N) : Gradient<T>(N)
+		GradientAGN<T>::GradientAGN(Point::PointMoffat<T>& pointS, ushort_t nDataPoints)
 		{
 			this->currentPoint = new Point::PointAGN<T>();
-			this->currentData(new Point::PointAGN<T>[N]);
-			boost::shared_ptr<T[]> S(new T[N]);
+			this->nDataPoints = nDataPoints;
+			for(ushort_t x = 0; x < nDataPoints; x++)
+				this->currentGradient.push_back(new Point::PointAGN<T>());
+			boost::shared_ptr<T[]> S(new T[nDataPoints]);
 			T flux = 0.;
-			for(Index x = 0; x < N; x++)
+			for(ushort_t x = 0; x < nDataPoints; x++)
 			{
-				int x2 = std::min(x * x, (N - x) * (N - x)); // conservazione delle posizioni
+				int x2 = std::min(x * x, (nDataPoints - x) * (nDataPoints - x)); // conservazione delle posizioni
 				S[x] = pow(1 + this->pointS["b"] * x2, -1 * this->pointS["beta"]);
 				flux += S[x];
 			}
-			for(Index x = 0; x < N; x++)
+			for(ushort_t x = 0; x < nDataPoints; x++)
 				S[x] /= flux; // conservazione del flusso
-			this->fftS(S, N);
+			this->fftS(S, nDataPoints);
 		}
 
 		template <typename T>
 		void GradientAGN<T>::updateData()
 		{
-			boost::shared_ptr<T[]> aR(new T[this->N]);
-			boost::shared_ptr<T[]> cR(new T[this->N]);
-			boost::shared_ptr<T[]> sigmaR(new T[this->N]);
-			boost::shared_ptr<T[]> aH(new T[this->N]);
-			boost::shared_ptr<T[]> bH(new T[this->N]);
-			boost::shared_ptr<T[]> cH(new T[this->N]);
-			boost::shared_ptr<T[]> betaH(new T[this->N]);
-			boost::shared_ptr<T[]> zero(new T[this->N]);
-			for(Index x = 0; x < this->N; x++)
+			boost::shared_ptr<T[]> aR(new T[this->nDataPoints]);
+			boost::shared_ptr<T[]> cR(new T[this->nDataPoints]);
+			boost::shared_ptr<T[]> sigmaR(new T[this->nDataPoints]);
+			boost::shared_ptr<T[]> aH(new T[this->nDataPoints]);
+			boost::shared_ptr<T[]> bH(new T[this->nDataPoints]);
+			boost::shared_ptr<T[]> cH(new T[this->nDataPoints]);
+			boost::shared_ptr<T[]> betaH(new T[this->nDataPoints]);
+			boost::shared_ptr<T[]> zero(new T[this->nDataPoints]);
+			for(ushort_t x = 0; x < this->nDataPoints; x++)
 			{
-				T a1 = (x - this->currentPoint["bh center"]) / this->currentPoint["bh sigma"];
+				T a1 = (x - this->currentPoint->get("bh center")) / this->currentPoint->get("bh sigma");
 				T ex = exp(-0.5 * a1 * a1);
-				T fac = 2. * this->currentPoint["bh amp"] * ex * a1;
+				T fac = 2. * this->currentPoint->get("bh amp") * ex * a1;
 				aR[x] = ex;
-				cR[x] = fac / this->currentPoint["bh sigma"];
-				sigmaR = fac * a1 / this->currentPoint["bh sigma"];
-				T AH = 1 + this->currentPoint["host b"] * x * x -
-						2 * this->currentPoint["host b"] * x * this->currentPoint["host b"] +
-						this->currentPoint["host b"] * this->currentPoint["host c"] * this->currentPoint["host c"];
-				T BH = exp(-1 * this->currentPoint["host beta"] * log(AH));
+				cR[x] = fac / this->currentPoint->get("bh sigma");
+				sigmaR = fac * a1 / this->currentPoint->get("bh sigma");
+				T AH = 1 + this->currentPoint->get("host b") * (x - this->currentPoint->get("host c")) *
+						(x - this->currentPoint->get("host c"));
+				T BH = exp(-1 * this->currentPoint->get("host beta") * log(AH));
 				T CH = BH / AH;
 				aH[x] = BH;
-				bH[x] = this->currentPoint["host a"] * this->currentPoint["host beta"] *
-						(2 * x * this->currentPoint["host c"] - x * x - this->currentPoint["host c"] * this->currentPoint["host c"]) * CH;
-				cH[x] = 2 * this->currentPoint["host a"] * this->currentPoint["host b"] *
-						this->currentPoint["host beta"] * (x - this->currentPoint["host c"]) * CH;
-				betaH[x] = -1 * this->currentPoint["host a"] * BH * log(AH);
+				bH[x] = -1* this->currentPoint->get("host a") * this->currentPoint->get("host beta") *
+						(x - this->currentPoint->get("host c")) * (x - this->currentPoint->get("host c")) * CH;
+				cH[x] = 2 * this->currentPoint->get("host a") * this->currentPoint->get("host b") *
+						this->currentPoint->get("host beta") *
+						(x - this->currentPoint->get("host c")) * CH;
+				betaH[x] = -1 * this->currentPoint->get("host amp") * BH * log(AH);
 				zero[x] = 1.;
 			}
-			this->fftS.ConvolveWith(aR, this->N, aR, NULL);
-			this->fftS.ConvolveWith(cR, this->N, cR, NULL);
-			this->fftS.ConvolveWith(sigmaR, this->N, sigmaR, NULL);
-			this->fftS.ConvolveWith(aH, this->N, aH, NULL);
-			this->fftS.ConvolveWith(bH, this->N, bH, NULL);
-			this->fftS.ConvolveWith(cH, this->N, cH, NULL);
-			this->fftS.ConvolveWith(betaH, this->N, betaH, NULL);
-			this->fftS.ConvolveWith(zero, this->N, zero, NULL);
-			for(Index x = 0; x < this->N; x++)
+			this->fftS.ConvolveWith(aR, this->nDataPoints, aR, NULL);
+			this->fftS.ConvolveWith(cR, this->nDataPoints, cR, NULL);
+			this->fftS.ConvolveWith(sigmaR, this->nDataPoints, sigmaR, NULL);
+			this->fftS.ConvolveWith(aH, this->nDataPoints, aH, NULL);
+			this->fftS.ConvolveWith(bH, this->nDataPoints, bH, NULL);
+			this->fftS.ConvolveWith(cH, this->nDataPoints, cH, NULL);
+			this->fftS.ConvolveWith(betaH, this->nDataPoints, betaH, NULL);
+			this->fftS.ConvolveWith(zero, this->nDataPoints, zero, NULL);
+			for(ushort_t x = 0; x < this->nDataPoints; x++)
 			{
-				this->currentData[x]["bh amplitude"] = aR[x];
-				this->currentData[x]["bh center"] = cR[x];
-				this->currentData[x]["bh sigma"] = sigmaR[x];
-				this->currentData[x]["host amplitude"] = aH[x];
-				this->currentData[x]["host b"] = bH[x];
-				this->currentData[x]["host center"] = cH[x];
-				this->currentData[x]["host beta"] = betaH[x];
-				this->currentData[x]["const"] = zero[x];
+				this->currentGradient[x]["bh amplitude"] = aR[x];
+				this->currentGradient[x]["bh center"] = cR[x];
+				this->currentGradient[x]["bh sigma"] = sigmaR[x];
+				this->currentGradient[x]["host amplitude"] = aH[x];
+				this->currentGradient[x]["host b"] = bH[x];
+				this->currentGradient[x]["host center"] = cH[x];
+				this->currentGradient[x]["host beta"] = betaH[x];
+				this->currentGradient[x]["const"] = zero[x];
 			}
 		}
 	}

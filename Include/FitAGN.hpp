@@ -8,27 +8,58 @@
 #pragma once
 #include "Fit.h"
 #include "PointAGN.hpp"
+#include "PointMoffat.hpp"
 #include "FunctionAGN.hpp"
 #include "GradientAGN.hpp"
 
-namespace Library
-{
-	namespace Fit
-	{
-		template <typename T>
-		class FitAGN : public Fit<T>
-		{
-		public:
-			typedef typename boost::shared_ptr<T**> Matrix;
-			FitAGN(Vector<T>& data, int nDataPoints, Point::PointMoffat<T>& pointS);
-		};
+namespace Library {
+    namespace Fit {
+        template<typename T>
+        class FitAGN: public Fit<T> {
+            public:
+                FitAGN(vector<T>& data, ushort_t nDataPoints,
+                        Point::PointMoffat<T>& pointS);
+                virtual ~FitAGN() {
+                }
+            protected:
+                virtual Function::Function<T>& function() {
+                    return myFunction;
+                }
+                virtual Function::Gradient<T>& gradient() {
+                    return myGradient;
+                }
+                virtual Point::Point<T>& newPoint() {
+                    return myNewPoint;
+                }
+                virtual Point::Point<T>& deltaPoint() {
+                    return myDeltaPoint;
+                }
+                virtual Point::Point<T>& h_sd() {
+                    return my_h_sd;
+                }
+                virtual Point::Point<T>& h_gn() {
+                    return my_h_gn;
+                }
+                virtual Point::Point<T>& h_dl() {
+                    return my_h_dl;
+                }
 
-		template <typename T>
-		FitAGN<T>::FitAGN(Vector<T>& data, int nDataPoints, Point::PointMoffat<T>& pointS) :
-			Fit<T>(data, nDataPoints)
-		{
-			this->function = new Function::FunctionAGN<T>(pointS, nDataPoints);
-			this->gradient = new Function::GradientAGN<T>(pointS, nDataPoints);
-		}
-	}
+                Function::FunctionAGN<T> myFunction;
+                Function::GradientAGN<T> myGradient;
+                Point::PointAGN<T> myNewPoint;
+                Point::PointAGN<T> myDeltaPoint;
+                Point::PointAGN<T> my_h_sd;
+                Point::PointAGN<T> my_h_gn;
+                Point::PointAGN<T> my_h_dl;
+        };
+
+        template<typename T>
+        FitAGN<T>::FitAGN(vector<T>& data, ushort_t nDataPoints,
+                Point::PointMoffat<T>& pointS) :
+                myFunction(nDataPoints), myGradient(nDataPoints) {
+            this->data = Data::Data<T>(data, nDataPoints);
+            this->nDataPoints = nDataPoints;
+            this->data.initData();
+        }
+    }
 }

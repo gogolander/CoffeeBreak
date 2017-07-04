@@ -6,6 +6,8 @@
  */
 
 #pragma once
+
+#include <boost/multi_array.hpp>
 namespace Library
 {
 	typedef unsigned short ushort_t;

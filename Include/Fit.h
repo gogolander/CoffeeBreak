@@ -1,9 +1,11 @@
 #pragma once
-#include <boost/shared_ptr.hpp>
 #include <string>
 #include "Point.hpp"
 #include "Function.hpp"
 #include "Gradient.hpp"
+#include "Data.hpp"
+#include "Maintainance.hpp"
+#include <vector>
 
 using namespace std;
 
@@ -16,37 +18,36 @@ namespace Library
 		class Fit
 		{
 		public:
-			typedef typename boost::shared_ptr<U**> Matrix;
-
 			Fit();
-			Fit(Vector<U>& data, int nDataPoints);
+			virtual ~Fit() { }
 			int LevenbergMarquardt(Point::Point<U>& point, U gradientTOL, U xTOL, U chi2TOL, int maxIterations);
 			int DogLeg(Point::Point<U>& point, U Delta0, U gradientTOL, U xTOL, U chi2TOL, int maxIterations);
-			U Chi2(Point::Point<U>& point); // This really is confusing: simplify it!
-			void getData(Vector<U>& result);
-			void setData(Vector<U>& data);
-			void getModel(Point::Point<U>& point, Vector<U>& result);
-			void getResiduals(Point::Point<U>& point, Vector<U>& result);
-			std::string PrintPoint(Point::Point<U>& point);
+			Data::Data<U>& getData();
+			void setData(vector<U>& data);
+			vector<U>& getModel(Point::Point<U>& point);
+			vector<U>& getResiduals(Point::Point<U>& point);
+			U abs(vector<U>& vec);
+
 		protected:
-			void Chi2Gradient(Point::Point<U>& point, Point::Point<U>& result);
-			void Chi2Hessian(Point::Point<U>& point, Matrix& result);
-			U Abs(Vector<U>& A, int size);
-			void Inverse(Matrix& A, int rank);
-			void SolveLinear(Matrix& A, Vector<U>& b, Vector<U>& result);
+//			void SolveLinear(Matrix& A, vector<U>& b, vector<U>& result);
+
 			U Min(U a, U b);
 			U Max(U a, U b);
 			U Sign(U a, U b);
 			U Sign(U a);
 			U Divide(U a, U b);
 
-			int nDataPoints;
-			Vector<U> data;
-			Vector<U> deviation;
-			Vector<U> model;
-			Vector<U> residuals;
-			Function::Function<U>* function;
-			Function::Gradient<U>* gradient;
+			ushort_t nDataPoints;
+			Data::Data<U> data;
+
+			virtual Function::Function<U>& function() = 0;
+			virtual Function::Gradient<U>& gradient() = 0;
+			virtual Point::Point<U>& newPoint() = 0;
+			virtual Point::Point<U>& deltaPoint() = 0;
+			virtual Point::Point<U>& h_sd() = 0;
+			virtual Point::Point<U>& h_gn() = 0;
+			virtual Point::Point<U>& h_dl() = 0;
+
 			U TINY;
 			U zeroLevel;
 		};

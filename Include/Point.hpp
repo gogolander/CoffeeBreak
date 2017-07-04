@@ -28,6 +28,8 @@ namespace Library
 			virtual ushort_t stringToIndex(string term) = 0;
 			virtual void copyTo(Point<T>* target) = 0;
 			virtual Point<T>* clone() = 0;
+			virtual Point<T>* newInstance() = 0;
+			virtual void fromVector(vector<T> data) = 0;
 
 			virtual string getType() { return string("Point.Virtual"); }
 
@@ -36,6 +38,7 @@ namespace Library
 			T& get(string term) { return point[stringToIndex(term)]; }
 			string toString();
 			ushort_t getDimensions() { return nDimensions; }
+			T abs();
 
 			bool operator ==(const Point<T>& other) { return this->equals(other); }
 			bool operator !=(const Point<T>& other) { return !this->equals(other); }
@@ -82,6 +85,15 @@ namespace Library
 			string result = "";
 			for(ushort_t index = 0; index < nDimensions; index++)
 				result += std::to_string(point[index]) + " ";
+			return result;
+		}
+
+		template <typename T>
+		T Point<T>::abs()
+		{
+			T result = 0.;
+			for(ushort_t index = 0; index < nDimensions; index++)
+				result += point[index] * point[index];
 			return result;
 		}
 	}

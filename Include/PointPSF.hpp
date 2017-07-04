@@ -31,7 +31,8 @@ namespace Library
 			virtual bool isValid();
 			virtual void copyTo(Point<T>* target);
 			virtual ushort_t stringToIndex(string term);
-			virtual PointPSF<T>* clone() { return new PointPSF<T>(this); }
+			virtual Point<T>* clone() { return new PointPSF<T>(this); }
+			virtual Point<T>* newInstance() { return new PointPSF<T>(); }
 
 			string getType() { return "Point.PSF"; }
 			T fromFWHM(T width) { return width / GAUSS_FWHM; }

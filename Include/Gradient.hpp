@@ -9,6 +9,9 @@
 #include "Point.hpp"
 #include "Maintainance.hpp"
 #include <string>
+
+using namespace std;
+
 namespace Library
 {
 	namespace Function
@@ -17,26 +20,44 @@ namespace Library
 		class Gradient
 		{
 		public:
-			Gradient(Index N);
+			Gradient();
+
 			virtual ~Gradient() { }
-			virtual Vector<Point::Point<T>*>& operator[](Point::Point<T>& other) = 0;
 			virtual void updateData() = 0;
-			virtual std::string getType() { return "Gradient.Virtual"; }
+			virtual string getType() { return string("Gradient.Virtual"); }
+
+			vector<Point::Point<T>* >& get(Point::Point<T>& other);
+			vector<Point::Point<T>* >& operator[](Point::Point<T>& other) { return get(other); }
 		protected:
-			std::vector<Point::Point<T>*> currentData;
+			vector<Point::Point<T>* > currentGradient;
 			Point::Point<T>* currentPoint;
-			Index N;
-			bool pointInitialized;
+			ushort_t nDataPoints;
 		};
 
 		template <typename T>
-		Gradient<T>::Gradient(Index N)
+		Gradient<T>::Gradient()
 		{
-			this->N = N;
-			for(Index i = 0; i < N; i++)
-				currentData.push_back(0.);
+			nDataPoints = 0;
 			currentPoint = 0;
-			pointInitialized = false;
+		}
+
+		template <typename T>
+		vector<Point::Point<T>* >& Gradient<T>::get(Point::Point<T>& other)
+		{
+			if(other)
+			{
+				if(currentPoint != 0 && !currentPoint->equals(other))
+				{
+					currentPoint = other.clone();
+					updateData();
+				}
+				else if(currentPoint == 0)
+				{
+					currentPoint = other.clone();
+					updateData();
+				}
+			}
+			return currentGradient;
 		}
 	}
 }

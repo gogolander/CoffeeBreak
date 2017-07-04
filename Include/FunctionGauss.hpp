@@ -6,7 +6,6 @@
  */
 
 #pragma once
-#include <cmath>
 #include "PointGauss.hpp"
 #include "Function.hpp"
 #include <string>
@@ -22,10 +21,10 @@ namespace Library
 		class FunctionGauss : public Function<T>
 		{
 		public:
-			FunctionGauss(ushort_t N);
+			FunctionGauss(ushort_t nDataPoints);
 			virtual ~FunctionGauss() { }
 			virtual void updateData();
-			virtual string getType() { return "Function.Gauss"; }
+			virtual string getType() { return string("Function.Gauss"); }
 		};
 
 		template <typename T>
@@ -42,7 +41,7 @@ namespace Library
 			for(ushort_t x = 0; x < this->nDataPoints; x++)
 			{
 				T amplitude = this->currentPoint->get("amplitude");
-				T fac1 = x - this->currentPoint->get("center");
+				T fac1 = static_cast<T>(x) - this->currentPoint->get("center");
 				fac1 *= fac1;
 				T fac2 = this->currentPoint->get("sigma");
 				fac2 *= fac2;

@@ -30,7 +30,8 @@ namespace Library
 			virtual ~PointAGN() { }
 			virtual bool isValid();
 			virtual void copyTo(Point<T>* target);
-			virtual PointAGN<T>* clone() { return new PointAGN<T>(this); }
+			virtual Point<T>* clone() { return new PointAGN<T>(this); }
+			virtual Point<T>* newInstance() { return new PointAGN<T>(); }
 
 			PointAGN<T> operator +(const T& b);
 			PointAGN<T> operator +(PointAGN<T>& b);
